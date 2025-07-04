@@ -22,7 +22,7 @@ class DQN(nn.Module):
 class DQNAgent:
     def __init__(
         self,
-        state_dim=11,
+        state_dim=17,
         action_dim=3,
         hidden_dim=256,
         lr=0.0003,

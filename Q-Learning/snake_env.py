@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 class SnakeGame:
-    def __init__(self, width=10, height=10):
+    def __init__(self, width=20, height=20):
         self.width = width
         self.height = height
         self.reset()

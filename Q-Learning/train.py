@@ -6,7 +6,7 @@ import numpy as np
 
 # ------------------ Parameter ------------------
 
-EPISODES = 1000
+EPISODES = 10000
 MAX_STEPS = 500
 NUM_EVAL_EPISODES = 50
 MOVING_AVG_WINDOW = 20

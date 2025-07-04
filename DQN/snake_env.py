@@ -2,121 +2,214 @@ import pygame
 import random
 import numpy as np
 
+BLOCK_SIZE = 20
+GRID_SIZE = 20
+WIDTH = HEIGHT = BLOCK_SIZE * GRID_SIZE
+
+# Farben
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+BLACK = (0, 0, 0)
+
 class SnakeGame:
-    def __init__(self, width=10, height=10):
-        self.width = width
-        self.height = height
+    def __init__(self):
+        pygame.init()
+        self.display = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Snake")
+        self.clock = pygame.time.Clock()
         self.reset()
 
     def reset(self):
-        self.snake = [(self.width // 2, self.height // 2)]
-        self.direction = (0, -1)  # Start: nach oben
-        self.spawn_apple()
+        self.direction = (1, 0)
+        self.head = [GRID_SIZE // 2, GRID_SIZE // 2]
+        self.snake = [self.head[:], [self.head[0] - 1, self.head[1]], [self.head[0] - 2, self.head[1]]]
         self.score = 0
-        self.frame = 0
+        self.food = self.place_food()
+        self.frame_iteration = 0
         return self.get_state()
 
-    def spawn_apple(self):
+    def place_food(self):
         while True:
-            self.apple = (random.randint(0, self.width - 1),
-                          random.randint(0, self.height - 1))
-            if self.apple not in self.snake:
-                break
+            x = random.randint(0, GRID_SIZE - 1)
+            y = random.randint(0, GRID_SIZE - 1)
+            if [x, y] not in self.snake:
+                return [x, y]
 
     def step(self, action):
-        self.change_direction(action)
+        self.frame_iteration += 1
 
-        head_x, head_y = self.snake[0]
+        # Richtungsänderung
+        clock_wise = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        idx = clock_wise.index(self.direction)
+
+        if action == 0:  # geradeaus
+            new_dir = self.direction
+        elif action == 1:  # rechts
+            new_dir = clock_wise[(idx + 1) % 4]
+        else:  # links
+            new_dir = clock_wise[(idx - 1) % 4]
+
+        self.direction = new_dir
+        x, y = self.head
         dx, dy = self.direction
-        new_head = (head_x + dx, head_y + dy)
+        self.head = [x + dx, y + dy]
+        self.snake.insert(0, self.head[:])
 
-        self.frame += 1
-        reward = 0
+        reward = -0.05
         done = False
 
-        # Kollision?
-        if (
-            new_head in self.snake
-            or new_head[0] < 0 or new_head[0] >= self.width
-            or new_head[1] < 0 or new_head[1] >= self.height
-        ):
-            reward = -1
-            done = True
-            return self.get_state(), reward, done, {}
+        ate_food = self.head == self.food
 
-        self.snake.insert(0, new_head)
-
-        if new_head == self.apple:
-            reward = 1
+        if ate_food:
             self.score += 1
-            self.spawn_apple()
+            reward = 1.0
+            self.food = self.place_food()
         else:
             self.snake.pop()
 
+        if (self.head in self.snake[1:] or
+            self.head[0] < 0 or self.head[0] >= GRID_SIZE or
+            self.head[1] < 0 or self.head[1] >= GRID_SIZE):
+            done = True
+            reward = -1.0
+            return self.get_state(), reward, done, {}
+
+        old_dist = np.linalg.norm(np.array(self.snake[1]) - np.array(self.food))
+        new_dist = np.linalg.norm(np.array(self.head) - np.array(self.food))
+
+        if new_dist < old_dist:
+            reward += 0.1
+        else:
+            reward -= 0.1
+
+        def free_space(direction, max_depth=4):
+            x, y = self.head
+            dx, dy = direction
+            count = 0
+            for i in range(1, max_depth + 1):
+                nx, ny = x + dx * i, y + dy * i
+                if 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE and [nx, ny] not in self.snake:
+                    count += 1
+                else:
+                    break
+            return count / max_depth
+
+        forward_dir = self.direction
+        free_ahead = free_space(forward_dir)
+        if free_ahead < 0.25:
+            reward -= 0.3
+
         return self.get_state(), reward, done, {}
 
-    def change_direction(self, action):
-        # 0 = geradeaus, 1 = links, 2 = rechts (relativ)
-        dx, dy = self.direction
-        if action == 1:  # links
-            self.direction = (-dy, dx)
-        elif action == 2:  # rechts
-            self.direction = (dy, -dx)
-        # 0 = keine Änderung
+    def render(self):
+        self.display.fill(BLACK)
+        for part in self.snake:
+            pygame.draw.rect(self.display, GREEN, pygame.Rect(part[0] * BLOCK_SIZE, part[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+        pygame.draw.rect(self.display, RED, pygame.Rect(self.food[0] * BLOCK_SIZE, self.food[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+        pygame.display.flip()
+        self.clock.tick(10)
 
     def get_state(self):
-        head_x, head_y = self.snake[0]
+        head_x, head_y = self.head
+        dir_x, dir_y = self.direction
 
-        point_l = (head_x - self.direction[1], head_y + self.direction[0])
-        point_r = (head_x + self.direction[1], head_y - self.direction[0])
-        point_s = (head_x + self.direction[0], head_y + self.direction[1])
-
-        def is_collision(point):
+        def danger_at(pos):
             return (
-                point in self.snake
-                or point[0] < 0 or point[0] >= self.width
-                or point[1] < 0 or point[1] >= self.height
+                pos in self.snake or
+                pos[0] < 0 or pos[0] >= GRID_SIZE or
+                pos[1] < 0 or pos[1] >= GRID_SIZE
             )
 
-        danger_straight = int(is_collision(point_s))
-        danger_left = int(is_collision(point_l))
-        danger_right = int(is_collision(point_r))
+        left = (-dir_y, dir_x)
+        right = (dir_y, -dir_x)
+        front = (dir_x, dir_y)
 
-        dir_l = self.direction == (-1, 0)
-        dir_r = self.direction == (1, 0)
-        dir_u = self.direction == (0, -1)
-        dir_d = self.direction == (0, 1)
+        front_block = [head_x + front[0], head_y + front[1]]
+        right_block = [head_x + right[0], head_y + right[1]]
+        left_block = [head_x + left[0], head_y + left[1]]
 
-        apple_x, apple_y = self.apple
+        danger_straight = danger_at(front_block)
+        danger_right = danger_at(right_block)
+        danger_left = danger_at(left_block)
+
+        dir_up = dir_y == -1
+        dir_down = dir_y == 1
+        dir_left = dir_x == -1
+        dir_right = dir_x == 1
+
+        food_left = self.food[0] < head_x
+        food_right = self.food[0] > head_x
+        food_up = self.food[1] < head_y
+        food_down = self.food[1] > head_y
+
+        snake_length = len(self.snake) / (GRID_SIZE * GRID_SIZE)
+        tail = self.snake[-1]
+        dist_to_tail = np.linalg.norm(np.array(self.head) - np.array(tail)) / np.sqrt(GRID_SIZE**2 * 2)
+
+        def free_space(direction, max_depth=5):
+            x, y = head_x, head_y
+            dx, dy = direction
+            count = 0
+            for i in range(1, max_depth + 1):
+                nx, ny = x + dx * i, y + dy * i
+                if 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE and [nx, ny] not in self.snake:
+                    count += 1
+                else:
+                    break
+            return count / max_depth
+
+        free_straight = free_space(front)
+        free_left = free_space(left)
+        free_right = free_space(right)
+
+        reachable_area = self.flood_fill_area(self.head)
 
         state = [
-            danger_straight,
-            danger_left,
-            danger_right,
-            int(dir_l),
-            int(dir_r),
-            int(dir_u),
-            int(dir_d),
-            int(apple_x < head_x),  # Apfel links
-            int(apple_x > head_x),  # Apfel rechts
-            int(apple_y < head_y),  # Apfel oben
-            int(apple_y > head_y)   # Apfel unten
+            int(danger_straight),
+            int(danger_right),
+            int(danger_left),
+
+            int(dir_left),
+            int(dir_right),
+            int(dir_up),
+            int(dir_down),
+
+            int(food_left),
+            int(food_right),
+            int(food_up),
+            int(food_down),
+
+            snake_length,
+            dist_to_tail,
+            free_straight,
+            free_left,
+            free_right,
+            reachable_area  # 🆕 hinzugefügt
         ]
 
-        return np.array(state, dtype=int)
+        return np.array(state, dtype=float)
 
-    def render(self, block_size=30):
-        pygame.init()
-        screen = pygame.display.set_mode((self.width * block_size, self.height * block_size))
-        pygame.display.set_caption("Snake DQN")
+    def flood_fill_area(self, start_pos, max_depth=100):
+        visited = set()
+        queue = [tuple(start_pos)]
+        area = 0
 
-        screen.fill((0, 0, 0))
-        for part in self.snake:
-            pygame.draw.rect(screen, (0, 255, 0),
-                             pygame.Rect(part[0] * block_size, part[1] * block_size, block_size, block_size))
+        while queue and area < max_depth:
+            x, y = queue.pop(0)
+            if (x, y) in visited:
+                continue
+            if x < 0 or x >= GRID_SIZE or y < 0 or y >= GRID_SIZE:
+                continue
+            if [x, y] in self.snake:
+                continue
 
-        pygame.draw.rect(screen, (255, 0, 0),
-                         pygame.Rect(self.apple[0] * block_size, self.apple[1] * block_size, block_size, block_size))
+            visited.add((x, y))
+            area += 1
 
-        pygame.display.flip()
-        pygame.time.wait(100)
+            queue.append((x + 1, y))
+            queue.append((x - 1, y))
+            queue.append((x, y + 1))
+            queue.append((x, y - 1))
+
+        return area / (GRID_SIZE * GRID_SIZE)

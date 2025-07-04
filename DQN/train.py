@@ -1,5 +1,7 @@
 from snake_env import SnakeGame
 from dqn_agent import DQNAgent
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import trange
