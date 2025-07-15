@@ -21,13 +21,13 @@ Ziel ist es, eine möglichst effektive Strategie zu entwickeln, mit der die Schl
 
 ## Ausführung
 
-### Q-Learning starten:
+## Q-Learning starten
 
 ```bash
 jupyter notebook Q-Learning/qlearning_snake.ipynb
 oder direkt im Notebook
 
-### DQN starten:
+## DQN starten:
 
 ```bash
 jupyter notebook DQN/dqn_snake.ipynb
