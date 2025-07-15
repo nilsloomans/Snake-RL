@@ -20,3 +20,8 @@ Ziel ist es, eine möglichst effektive Strategie zu entwickeln, mit der die Schl
 ---
 
 ## Ausführung
+
+## Q-Learning:
+```bash
+jupyter notebook Q-Learning/qlearning_snake.ipynb
+oder direkt im Notebook
