@@ -24,13 +24,13 @@ Ziel ist es, eine möglichst effektive Strategie zu entwickeln, mit der die Schl
 ## Q-Learning:
 
 bash
-jupyter notebook Q-Learning/qlearning_snake.ipynb
+jupyter notebook Q-Learning/Q-Learning.ipynb
 oder direkt im Notebook
 
 ## DQN:
 
 bash
-jupyter notebook DQN/dqn_snake.ipynb
+jupyter notebook DQN/DQN.ipynb
 oder direkt im Notebook
 
 ## Weitere Informationen zur Ausführung
