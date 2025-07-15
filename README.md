@@ -20,20 +20,3 @@ Ziel ist es, eine möglichst effektive Strategie zu entwickeln, mit der die Schl
 ---
 
 ## Ausführung
-
-## Q-Learning starten
-
-```bash
-jupyter notebook Q-Learning/qlearning_snake.ipynb
-oder direkt im Notebook
-
-## DQN starten:
-
-```bash
-jupyter notebook DQN/dqn_snake.ipynb
-oder direkt im Notebook
-
-## Informationen falls die Live-Demo am Ende nicht richtig funktioneirt (war manchmal der Fall) und sich das Spiel aufhängt/nicht mehr reagiert
-
-Es ist schon ein fertiges Modell erstellt und im Q-Learning/DQN Ordner liegt jeweils eine play_trained.py.
-Diese kann stattdessen ausgeführt werden um dieses Problem zu umgehen.
