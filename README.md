@@ -41,3 +41,8 @@ Neben dem Notebook liegt der Code auch in einzelnen Python-Dateien vor.
 In jedem der 2 Ordner für Q-Learning und DQN liegt jeweils eine Datei mit play_trained.py.
 Diese können stattdessen ausgeführt werden um die Agenten entsprechend zu nutzen.
 Es liegen nämlich 2 Modelle jeweils 1 zu jedem Ansatz schon da.
+
+## Vorausetzungen
+
+- Der Code wurde mit der Python Version 3.12.1 ausgeführt
+- Die verschiedenen benötigten Packages sind in der requirements dokumentiert
