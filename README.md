@@ -25,13 +25,13 @@ Ziel ist es, eine möglichst effektive Strategie zu entwickeln, mit der die Schl
 
 bash
 jupyter notebook Q-Learning/Q-Learning.ipynb
-oder direkt im Notebook
+oder direkt im Notebook (ist empfohlen)
 
 ## DQN:
 
 bash
 jupyter notebook DQN/DQN.ipynb
-oder direkt im Notebook
+oder direkt im Notebook (ist empfohlen)
 
 ## Weitere Informationen zur Ausführung
 
